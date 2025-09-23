@@ -1,40 +1,49 @@
-const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
-const DigestFetch = require("digest-fetch");
-require("dotenv").config();
+import express from "express";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+import DigestFetch from "digest-fetch";
+
+dotenv.config();
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 10000;
-const AUDIOSTACJA_URL = process.env.AUDIOSTACJA_URL;
-const AUDIOSTACJA_USER = process.env.AUDIOSTACJA_USER;
-const AUDIOSTACJA_PASS = process.env.AUDIOSTACJA_PASS;
+const USER = process.env.SOURCE_USER;
+const PASS = process.env.SOURCE_PASS;
+const SOURCE_URL = process.env.SOURCE_URL;
+const ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || "*";
 
 // klient digest auth
-const client = new DigestFetch(AUDIOSTACJA_USER, AUDIOSTACJA_PASS);
+const client = new DigestFetch(USER, PASS);
 
+// CORS
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", ALLOW_ORIGIN);
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
+
+// test root
 app.get("/", (req, res) => {
   res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
 });
 
+// endpoint proxy
 app.get("/magazyn", async (req, res) => {
   try {
-    const response = await client.fetch(AUDIOSTACJA_URL, {
-      method: "GET",
-    });
+    const response = await client.fetch(SOURCE_URL);
 
     if (!response.ok) {
-      throw new Error(`Błąd pobierania: ${response.status}`);
+      return res
+        .status(response.status)
+        .send(`Błąd pobierania: ${response.status}`);
     }
 
-    const xml = await response.text();
-    res.set("Content-Type", "application/xml");
-    res.send(xml);
+    const data = await response.text();
+    res.type("application/xml").send(data);
   } catch (error) {
-    console.error("❌ Błąd proxy:", error.message);
-    res.status(500).send("Błąd serwera proxy: " + error.message);
+    res.status(500).send(`Błąd serwera proxy: ${error.message}`);
   }
 });
 
