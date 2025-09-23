@@ -1,27 +1,30 @@
-require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
-
-// 🔥 fix SSL cert error
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+const https = require("https");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Endpoint testowy
-app.get("/", (req, res) => {
-  res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
+// Konfiguracja HTTPS (wyłącza sprawdzanie certyfikatu – bo Audiostacja ma problem z certyfikatem)
+const agent = new https.Agent({
+  rejectUnauthorized: false
 });
 
-// Endpoint główny
+// LOGIN + HASŁO wpisane na sztywno (testowo!)
+const LOGIN = "Magnus_Studio";
+const PASSWORD = "9W3HabB25ctk#9F5cojp85@";
+
+app.get("/", (req, res) => {
+  res.send("✅ Proxy Audiostacja działa! Użyj <code>/magazyn</code> aby pobrać dane.");
+});
+
 app.get("/magazyn", async (req, res) => {
   try {
     const response = await fetch("https://data.audiostacja.pl/Magnus/magazyn.xml", {
       headers: {
-        "Authorization": "Basic " + Buffer.from(
-          `${process.env.MAGNUS_USER}:${process.env.MAGNUS_PASS}`
-        ).toString("base64")
-      }
+        "Authorization": "Basic " + Buffer.from(`${LOGIN}:${PASSWORD}`).toString("base64")
+      },
+      agent
     });
 
     if (!response.ok) {
@@ -29,14 +32,14 @@ app.get("/magazyn", async (req, res) => {
     }
 
     const text = await response.text();
-    res.type("application/xml").send(text);
+    res.set("Content-Type", "application/xml");
+    res.send(text);
 
   } catch (err) {
     res.status(500).send("Błąd serwera proxy: " + err.message);
   }
 });
 
-// Start
 app.listen(PORT, () => {
   console.log(`Proxy działa na http://localhost:${PORT}`);
 });
