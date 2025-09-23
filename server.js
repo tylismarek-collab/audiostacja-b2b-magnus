@@ -51,3 +51,7 @@ app.get("/magazyn", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy działa na http://localhost:${PORT}`);
 });
+
+app.get("/", (req, res) => {
+  res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
+});
