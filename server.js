@@ -1,57 +1,39 @@
-// server.js
+require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
-const https = require("https");
-require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Agent SSL z wyłączoną weryfikacją certyfikatu
-const agent = new https.Agent({
-  rejectUnauthorized: false
+// Endpoint testowy
+app.get("/", (req, res) => {
+  res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
 });
 
-// Endpoint healthcheck
-app.get("/healthz", (req, res) => {
-  res.json({ ok: true });
-});
-
-// Endpoint proxy do XML
+// Endpoint główny - pobieranie magazynu
 app.get("/magazyn", async (req, res) => {
   try {
-    const response = await fetch(process.env.SOURCE_URL, {
-      agent,
+    const response = await fetch("https://data.audiostacja.pl/Magnus/magazyn.xml", {
       headers: {
-        "Authorization":
-          "Basic " +
-          Buffer.from(
-            process.env.SOURCE_USER + ":" + process.env.SOURCE_PASS
-          ).toString("base64")
+        "Authorization": "Basic " + Buffer.from(
+          `${process.env.MAGNUS_USER}:${process.env.MAGNUS_PASS}`
+        ).toString("base64")
       }
     });
 
     if (!response.ok) {
-      throw new Error(`Błąd pobierania: ${response.status}`);
+      return res.status(response.status).send(`Błąd pobierania: ${response.status}`);
     }
 
-    const xml = await response.text();
-
-    // Ustaw nagłówki
-    res.set("Content-Type", "application/xml; charset=utf-8");
-    res.send(xml);
+    const text = await response.text();
+    res.type("application/xml").send(text);
 
   } catch (err) {
-    console.error("Proxy error:", err.message);
-    res.status(500).send(`Błąd serwera proxy: ${err.message}`);
+    res.status(500).send("Błąd serwera proxy: " + err.message);
   }
 });
 
 // Start serwera
 app.listen(PORT, () => {
   console.log(`Proxy działa na http://localhost:${PORT}`);
-});
-
-app.get("/", (req, res) => {
-  res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
 });
