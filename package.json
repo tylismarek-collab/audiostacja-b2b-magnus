@@ -1,7 +1,7 @@
 {
   "name": "audiostacja-proxy",
   "version": "1.0.0",
-  "description": "Proxy do pobierania magazyn.xml z Audiostacja (Digest Auth)",
+  "description": "Proxy do pobierania magazyn.xml z Audiostacja (Digest Auth) + statyczny index.html",
   "main": "server.js",
   "type": "module",
   "scripts": {
