@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
 
+// 🔥 fix SSL cert error
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -10,7 +13,7 @@ app.get("/", (req, res) => {
   res.send("✅ Proxy Audiostacja działa! Użyj /magazyn aby pobrać dane.");
 });
 
-// Endpoint główny - pobieranie magazynu
+// Endpoint główny
 app.get("/magazyn", async (req, res) => {
   try {
     const response = await fetch("https://data.audiostacja.pl/Magnus/magazyn.xml", {
@@ -33,7 +36,7 @@ app.get("/magazyn", async (req, res) => {
   }
 });
 
-// Start serwera
+// Start
 app.listen(PORT, () => {
   console.log(`Proxy działa na http://localhost:${PORT}`);
 });
