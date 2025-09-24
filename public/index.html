@@ -99,7 +99,7 @@
       if (user === 'magnus' && pass === 'Wirdak48!!') {
         loginScreen.classList.add('hidden');
         dashboard.classList.remove('hidden');
-        refreshBtn.click(); // automatyczne załadowanie produktów
+        refreshBtn.click();
       } else {
         loginError.classList.remove('hidden');
       }
@@ -208,7 +208,7 @@
             name: fields["Opis_towaru"] || "",
             producer: fields["Producent"] || "",
             ean: fields["Kod_kreskowy"] || "",
-            warranty: fields["Gwarancja"] || "Brak danych",
+            warranty: fields["Gwarancja_opis"] || "Brak danych",
             priceGross: parseFloat(fields["Cena_Brutto"] || "0"),
             priceGrossDiscount: parseFloat(fields["Cena_Brutto_Rabat"] || "0")
           };
@@ -278,12 +278,13 @@
       });
     }
 
-    // otwieranie i zamykanie koszyka
+    // toggle koszyka (ikonka + X)
+    const cartPanel = document.getElementById("cart-panel");
     document.getElementById("open-cart").addEventListener("click", () => {
-      document.getElementById("cart-panel").classList.remove("hidden");
+      cartPanel.classList.toggle("hidden");
     });
     document.getElementById("close-cart").addEventListener("click", () => {
-      document.getElementById("cart-panel").classList.add("hidden");
+      cartPanel.classList.add("hidden");
     });
 
     document.getElementById("export-cart").addEventListener("click", () => {
